@@ -12,6 +12,9 @@ import {
   isInternalUrl,
 } from '../src/commands/integrations.ts';
 
+const okCommand = [process.execPath, '-e', 'process.exit(0)'];
+const failCommand = [process.execPath, '-e', 'process.exit(1)'];
+
 // --- parseRecipe tests ---
 
 describe('parseRecipe', () => {
@@ -396,12 +399,12 @@ describe('executeHealthCheck', () => {
   });
 
   test('command returns ok for exit 0', async () => {
-    const result = await executeHealthCheck({ type: 'command', argv: ['true'], label: 'true cmd' }, 'test-id', true);
+    const result = await executeHealthCheck({ type: 'command', argv: okCommand, label: 'ok cmd' }, 'test-id', true);
     expect(result.status).toBe('ok');
   });
 
   test('command returns fail for exit 1', async () => {
-    const result = await executeHealthCheck({ type: 'command', argv: ['false'], label: 'false cmd' }, 'test-id', true);
+    const result = await executeHealthCheck({ type: 'command', argv: failCommand, label: 'fail cmd' }, 'test-id', true);
     expect(result.status).toBe('fail');
   });
 
@@ -476,13 +479,13 @@ describe('executeHealthCheck', () => {
 
   // Fix 2: command DSL health checks are gated on isEmbedded.
   test('command health_check is blocked for non-embedded recipes', async () => {
-    const result = await executeHealthCheck({ type: 'command', argv: ['true'], label: 'true' }, 'test-id', false);
+    const result = await executeHealthCheck({ type: 'command', argv: okCommand, label: 'ok' }, 'test-id', false);
     expect(result.status).toBe('blocked');
     expect(result.output).toContain('restricted to embedded recipes');
   });
 
   test('command health_check runs for embedded recipes', async () => {
-    const result = await executeHealthCheck({ type: 'command', argv: ['true'], label: 'true' }, 'test-id', true);
+    const result = await executeHealthCheck({ type: 'command', argv: okCommand, label: 'ok' }, 'test-id', true);
     expect(result.status).toBe('ok');
   });
 
